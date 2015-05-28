@@ -1,3 +1,5 @@
+HEIGHT_MAP = "assets/tatry-height-map.png";
+
 var project = {
     init: function () {
         this.renderer = new THREE.WebGLRenderer();
@@ -7,7 +9,7 @@ var project = {
         this.scene = new THREE.Scene();
 
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
-        this.camera.position.set(10, 20, 10);
+        this.camera.position.set(0, 100, 100);
         this.camera.lookAt(project.scene.position);
         this.scene.add(this.camera);
 
@@ -19,15 +21,16 @@ var project = {
         img.onload = function () {
             var data = project.getHeightData(img);
             var geometry = new THREE.PlaneGeometry(500, 500, 499, 499);
-            var texture = THREE.ImageUtils.loadTexture('assets/tatry-height-map.png');
+            var texture = THREE.ImageUtils.loadTexture(HEIGHT_MAP);
             var material = new THREE.MeshLambertMaterial({map: texture});
             var plane = new THREE.Mesh(geometry, material);
             for (var i = 0; i < plane.geometry.vertices.length; i++) {
                 plane.geometry.vertices[i].z = data[i];
             }
+            plane.geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
             project.scene.add(plane);
         };
-        img.src = "assets/tatry-height-map.png";
+        img.src = HEIGHT_MAP;
         document.body.appendChild(this.renderer.domElement);
         window.addEventListener('resize', this.onWindowResize, false);
     },
@@ -50,7 +53,7 @@ var project = {
         var data = new Float32Array(size);
         context.drawImage(img, 0, 0);
         for (var i = 0; i < size; i++) {
-            data[i] = 0
+            data[i] = 0;
         }
         var imgd = context.getImageData(0, 0, img.width, img.height);
         var pix = imgd.data;
