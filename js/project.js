@@ -4,7 +4,7 @@ var project = {
         this.scene = new THREE.Scene();
         var light = new THREE.DirectionalLight(0xdfdf00, 1.5);
         light.position.set(1, 1, 1);
-        scene.add(light);
+        this.scene.add(light);
     },
     animate: function () {
 
