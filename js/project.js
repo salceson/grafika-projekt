@@ -5,6 +5,10 @@ var project = {
         var light = new THREE.DirectionalLight(0xdfdf00, 1.5);
         light.position.set(1, 1, 1);
         this.scene.add(light);
+        this.renderer = new THREE.WebGLRenderer();
+        this.renderer.setClearColor(0xffffff);
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(this.renderer.domElement);
     },
     animate: function () {
 
