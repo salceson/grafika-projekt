@@ -1,4 +1,4 @@
-HEIGHT_MAP = "assets/tatry-height-map.png";
+HEIGHT_MAP = "assets/island-height-map2.png";
 
 var project = {
     init: function () {
@@ -13,14 +13,14 @@ var project = {
         this.camera.lookAt(project.scene.position);
         this.scene.add(this.camera);
 
-        var light = new THREE.DirectionalLight(0xdfdf00, 1.5);
-        light.position.set(1, 1, 1);
+        var light = new THREE.DirectionalLight(0xdfdf00, 10.5);
+        light.position.set(1, 100, 1);
         this.scene.add(light);
 
         var img = document.createElement("img");
         img.onload = function () {
             var data = project.getHeightData(img);
-            var geometry = new THREE.PlaneGeometry(500, 500, 499, 499);
+            var geometry = new THREE.PlaneGeometry(500, 500, 269, 269);
             var texture = THREE.ImageUtils.loadTexture(HEIGHT_MAP);
             var material = new THREE.MeshLambertMaterial({map: texture});
             var plane = new THREE.Mesh(geometry, material);
