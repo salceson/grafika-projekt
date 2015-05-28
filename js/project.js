@@ -9,6 +9,12 @@ var project = {
         this.renderer.setClearColor(0xffffff);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
+        window.addEventListener('resize', this.onWindowResize, false);
+    },
+    onWindowResize: function () {
+        project.camera.aspect = window.innerWidth / window.innerHeight;
+        project.camera.updateProjectionMatrix();
+        project.renderer.setSize(window.innerWidth, window.innerHeight);
     },
     animate: function () {
 
