@@ -46,10 +46,11 @@ var fragmentShader = [
 
 var project = {
     init: function () {
-        this.renderer = new THREE.WebGLRenderer();
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setClearColor(0xffffff);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.shadowMapEnabled = true;
+        this.renderer.shadowMapSoft = true;
         this.renderer.autoClear = true;
         this.renderer.autoClearColor = true;
 
@@ -58,73 +59,195 @@ var project = {
 
         this.scene = new THREE.Scene();
 
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.5, 3000000);
         this.camX = 0;
-        this.camera.position.set(0, 20, 500);
+        this.camera.position.set(0, 200, 500);
         this.camera.lookAt(project.scene.position);
         this.scene.add(this.camera);
 
-        var light = new THREE.PointLight(0xffffff);
-        light.position.set(100, 200, 100);
-        this.scene.add(light);
+        var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
+        hemiLight.position.set( 0, 500, 0 );
+        hemiLight.castShadow = true;
+        //this.scene.add( hemiLight );
 
-        // SKYBOX
-        var skyBoxGeometry = new THREE.CubeGeometry(20000, 20000, 10000);
-        var skyBoxMaterial = new THREE.MeshBasicMaterial({color: 0x9999ff, side: THREE.BackSide});
-        var skyBox = new THREE.Mesh(skyBoxGeometry, skyBoxMaterial);
-        this.scene.add(skyBox);
+        this.directionalLight = new THREE.DirectionalLight(0xffff55, 1);
+        this.directionalLight.position.set(-600, 300, 600);
+        this.directionalLight.target.position.set(0,0,0);
+        this.directionalLight.castShadow = true;
+        this.directionalLight.shadowCameraNear = -1000;
+        this.directionalLight.shadowCameraFar = 500;
+        this.directionalLight.shadowCameraLeft = -1000;
+        this.directionalLight.shadowCameraRight = 1000;
+        this.directionalLight.shadowCameraTop = 1000;
+        this.directionalLight.shadowCameraBottom = -1000;
+        this.directionalLight.shadowCameraVisible = true;
+        this.directionalLight.shadowMapWidth = 2048;
+        this.directionalLight.shadowMapHeight = 2048;
+        this.scene.add(this.directionalLight);
 
+         //add spotlight for a bit of light
+        var spotLight0 = new THREE.SpotLight(0xcccccc);
+        spotLight0.position.set(-400, 400, -10);
+        spotLight0.lookAt(0,0,0);
+        spotLight0.castShadow = true;
+        spotLight0.shadowMapWidth = 2048;
+        spotLight0.shadowMapHeight = 2048;
+        spotLight0.angle = Math.PI/2
+        this.scene.add(spotLight0);
 
-        // texture used to generate "bumpiness"
-        var bumpTexture = new THREE.ImageUtils.loadTexture(HEIGHT_MAP);
-        bumpTexture.wrapS = bumpTexture.wrapT = THREE.RepeatWrapping;
-        // magnitude of normal displacement
-        var bumpScale = 200.0;
+        // create a cube
+        var cubeGeometry = new THREE.BoxGeometry(20, 20, 20);
+        var cubeMaterial = new THREE.MeshLambertMaterial({color: 0xff3333});
+        var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        cube.castShadow = true;
 
-        // use "this." to create global object
-        var customUniforms = THREE.UniformsUtils.merge(
-            [THREE.UniformsLib['lights'],
-                {
-                    bumpTexture: {type: "t", value: bumpTexture},
-                    bumpScale: {type: "f", value: bumpScale},
-                    diffuse: {type: 'c', value: new THREE.Color(0x00ff00)}
-                }
-            ]
+        // position the cube
+        cube.position.x = -4;
+        cube.position.y = 40;
+        cube.position.z = 0;
+
+        // add the cube to the scene
+        this.scene.add(cube);
+
+        this.loadSkyBox();
+
+        this.loadTerrain();
+
+        this.loadWater();
+    },
+
+    loadTerrain: function () {
+        // terrain
+        var img = new Image();
+        img.onload = function () {
+            var data = project.getHeightData(img, 0.5);
+
+            var geometry = new THREE.PlaneGeometry(3000, 3000, 269, 269);
+            var texture = THREE.ImageUtils.loadTexture(HEIGHT_MAP);
+            var material = new THREE.MeshLambertMaterial({color: 0x00FF00});
+            var plane = new THREE.Mesh(geometry, material);
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.y = -1;
+
+            //set height of vertices
+            for (var i = 0; i < plane.geometry.vertices.length; i++) {
+                plane.geometry.vertices[i].z = data[i];
+            }
+
+            plane.castShadow = true;
+            plane.receiveShadow = true;
+
+            project.scene.add(plane);
+        };
+        img.src = HEIGHT_MAP;
+    },
+
+    //return array with height data from img
+    getHeightData: function (img, scale) {
+        if (scale == undefined) scale = 1;
+
+        var canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        var context = canvas.getContext('2d');
+
+        var size = img.width * img.height;
+        var data = new Float32Array(size);
+
+        context.drawImage(img, 0, 0);
+
+        for (var i = 0; i < size; i++) {
+            data[i] = 0
+        }
+
+        var imgd = context.getImageData(0, 0, img.width, img.height);
+        var pix = imgd.data;
+
+        var j = 0;
+        for (var i = 0; i < pix.length; i += 4) {
+            var all = pix[i] + pix[i + 1] + pix[i + 2];
+            data[j++] = all / (12 * scale);
+        }
+
+        return data;
+    },
+
+    loadSkyBox: function loadSkyBox() {
+        var aCubeMap = THREE.ImageUtils.loadTextureCube([
+            'assets/img/px.jpg',
+            'assets/img/nx.jpg',
+            'assets/img/py.jpg',
+            'assets/img/ny.jpg',
+            'assets/img/pz.jpg',
+            'assets/img/nz.jpg'
+        ]);
+        aCubeMap.format = THREE.RGBFormat;
+
+        var aShader = THREE.ShaderLib['cube'];
+        aShader.uniforms['tCube'].value = aCubeMap;
+
+        var aSkyBoxMaterial = new THREE.ShaderMaterial({
+            fragmentShader: aShader.fragmentShader,
+            vertexShader: aShader.vertexShader,
+            uniforms: aShader.uniforms,
+            depthWrite: false,
+            side: THREE.BackSide
+        });
+
+        var aSkybox = new THREE.Mesh(
+            new THREE.BoxGeometry(1000000, 1000000, 1000000),
+            aSkyBoxMaterial
         );
 
-        customUniforms.bumpTexture = {type: "t", value: bumpTexture};
-
-        // create custom material from the shader code above
-        //   that is within specially labelled script tags
-        var customMaterial = new THREE.ShaderMaterial(
-            {
-                uniforms: customUniforms,
-                vertexShader: vertexShader,
-                fragmentShader: fragmentShader,
-                //side: THREE.DoubleSide,
-                lights: true
-            });
-
-        var planeGeo = new THREE.PlaneGeometry(1000, 1000, 100, 100);
-        var plane = new THREE.Mesh(planeGeo, customMaterial);
-        plane.rotation.x = -Math.PI / 2;
-        plane.position.y = -100;
-        this.scene.add(plane);
-
+        this.scene.add(aSkybox);
     },
+
+    loadWater: function() {
+        // Load textures
+        var waterNormals = new THREE.ImageUtils.loadTexture('assets/img/waternormals.jpg');
+        waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
+
+        // Create the water effect
+        project.ms_Water = new THREE.Water(project.renderer, project.camera, project.scene, {
+            textureWidth: 512,
+            textureHeight: 512,
+            waterNormals: waterNormals,
+            alpha: 	1.0,
+            sunDirection: project.directionalLight.position.normalize(),
+            sunColor: 0xffffff,
+            waterColor: 0x001e0f,
+            distortionScale: 50.0
+        });
+        var aMeshMirror = new THREE.Mesh(
+            new THREE.PlaneBufferGeometry(2000 * 500, 2000 * 500, 10, 10),
+            project.ms_Water.material
+        );
+        aMeshMirror.add(project.ms_Water);
+        aMeshMirror.rotation.x = - Math.PI * 0.5;
+        project.scene.add(aMeshMirror);
+    },
+
     onWindowResize: function () {
         project.camera.aspect = window.innerWidth / window.innerHeight;
         project.camera.updateProjectionMatrix();
         project.renderer.setSize(window.innerWidth, window.innerHeight);
     },
+
     animate: function () {
         requestAnimationFrame(project.animate);
+        project.update();
         project.render();
     },
+
     render: function () {
         this.camX += 0.3;
-        this.camera.position.set(this.camX, 20, 500);
+        this.camera.position.set(this.camX, 200, 500);
         this.camera.lookAt(project.scene.position);
+        this.ms_Water.render();
         this.renderer.render(this.scene, this.camera);
+    },
+
+    update: function update() {
+        this.ms_Water.material.uniforms.time.value += 1.0 / 60.0;
     }
 };
