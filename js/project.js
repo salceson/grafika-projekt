@@ -29,16 +29,16 @@ var fragmentShader = [
     "uniform vec3 diffuse;",
     "varying vec3 vPos;",
     "varying vec3 vNormal;",
-    "uniform vec3 pointLightColor[MAX_POINT_LIGHTS];",
-    "uniform vec3 pointLightPosition[MAX_POINT_LIGHTS];",
-    "uniform float pointLightDistance[MAX_POINT_LIGHTS];",
+    "uniform vec3 directionalLightColor[MAX_DIR_LIGHTS];",
+    "uniform vec3 directionalLightPosition[MAX_DIR_LIGHTS];",
+    "uniform float directionalLightDistance[MAX_DIR_LIGHTS];",
     "",
     "void main()",
     "{",
     "   vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);",
-    "   for(int l = 0; l < MAX_POINT_LIGHTS; l++) {",
-    "       vec3 lightDirection = normalize(vPos - pointLightPosition[l]);",
-    "       addedLights.rgb += clamp(dot(-lightDirection, vNormal), 0.0, 1.0) * pointLightColor[l];",
+    "   for(int l = 0; l < MAX_DIR_LIGHTS; l++) {",
+    "       vec3 lightDirection = normalize(vPos - directionalLightPosition[l]);",
+    "       addedLights.rgb += clamp(dot(-lightDirection, vNormal), 0.0, 1.0) * directionalLightColor[l];",
     "   }",
     "   gl_FragColor = mix(vec4(diffuse.x, diffuse.y, diffuse.z, 1.0), addedLights, addedLights);",
     "}"
@@ -111,7 +111,8 @@ var project = {
 
         this.loadSkyBox();
 
-        this.loadTerrain();
+        this.loadShaderTerrain();
+        //this.loadTerrain();
 
         this.loadWater();
     },
@@ -140,6 +141,44 @@ var project = {
             project.scene.add(plane);
         };
         img.src = HEIGHT_MAP;
+    },
+
+    loadShaderTerrain: function() {
+        // texture used to generate "bumpiness"
+        var bumpTexture = new THREE.ImageUtils.loadTexture(HEIGHT_MAP);
+        bumpTexture.wrapS = bumpTexture.wrapT = THREE.RepeatWrapping;
+        // magnitude of normal displacement
+        var bumpScale = 512.0;
+
+        // use "this." to create global object
+        var customUniforms = THREE.UniformsUtils.merge(
+            [THREE.UniformsLib['lights'],
+                {
+                    bumpTexture: {type: "t", value: bumpTexture},
+                    bumpScale: {type: "f", value: bumpScale},
+                    diffuse: {type: 'c', value: new THREE.Color(0x00ff00)}
+                }
+            ]
+        );
+
+        customUniforms.bumpTexture = {type: "t", value: bumpTexture};
+
+        // create custom material from the shader code above
+        //   that is within specially labelled script tags
+        var customMaterial = new THREE.ShaderMaterial(
+            {
+                uniforms: customUniforms,
+                vertexShader: vertexShader,
+                fragmentShader: fragmentShader,
+                //side: THREE.DoubleSide,
+                lights: true
+            });
+
+        var planeGeo = new THREE.PlaneGeometry(10000, 10000, 269, 269);
+        var plane = new THREE.Mesh(planeGeo, customMaterial);
+        plane.rotation.x = -Math.PI / 2;
+        plane.position.y = -1;
+        this.scene.add(plane);
     },
 
     //return array with height data from img
