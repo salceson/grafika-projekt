@@ -120,9 +120,9 @@ var project = {
         // terrain
         var img = new Image();
         img.onload = function () {
-            var data = project.getHeightData(img, 0.5);
+            var data = project.getHeightData(img, 0.2);
 
-            var geometry = new THREE.PlaneGeometry(3000, 3000, 269, 269);
+            var geometry = new THREE.PlaneGeometry(10000, 10000, 269, 269);
             var texture = THREE.ImageUtils.loadTexture(HEIGHT_MAP);
             var material = new THREE.MeshLambertMaterial({color: 0x00FF00});
             var plane = new THREE.Mesh(geometry, material);
