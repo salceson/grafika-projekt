@@ -174,12 +174,12 @@ var project = {
 
     loadSkyBox: function loadSkyBox() {
         var aCubeMap = THREE.ImageUtils.loadTextureCube([
-            'assets/img/px.jpg',
-            'assets/img/nx.jpg',
-            'assets/img/py.jpg',
-            'assets/img/ny.jpg',
-            'assets/img/pz.jpg',
-            'assets/img/nz.jpg'
+            'assets/img/px.png',
+            'assets/img/nx.png',
+            'assets/img/py.png',
+            'assets/img/ny.png',
+            'assets/img/pz.png',
+            'assets/img/nz.png'
         ]);
         aCubeMap.format = THREE.RGBFormat;
 
@@ -241,7 +241,7 @@ var project = {
 
     render: function () {
         this.camX += 0.3;
-        this.camera.position.set(this.camX, 200, 500);
+        this.camera.position.set(this.camX, 500, 1000);
         this.camera.lookAt(project.scene.position);
         this.ms_Water.render();
         this.renderer.render(this.scene, this.camera);
