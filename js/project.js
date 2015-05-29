@@ -8,6 +8,9 @@ var vertexShader = [
     "varying vec2 vUV;",
     "varying vec3 vPos;",
     "varying vec3 vNormal;",
+    THREE.ShaderChunk[ "common" ],
+    THREE.ShaderChunk[ 'worldpos_vertex'],
+    THREE.ShaderChunk[ "shadowmap_pars_vertex" ],
     "",
     "void main()",
     "{",
@@ -22,6 +25,7 @@ var vertexShader = [
     "    vec3 newPosition = position + normal * bumpScale * vAmount;",
     "",
     "    gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );",
+    THREE.ShaderChunk[ "shadowmap_vertex" ],
     "}"
 ].join("\n");
 
@@ -32,21 +36,27 @@ var fragmentShader = [
     "uniform vec3 directionalLightColor[MAX_DIR_LIGHTS];",
     "uniform vec3 directionalLightPosition[MAX_DIR_LIGHTS];",
     "uniform float directionalLightDistance[MAX_DIR_LIGHTS];",
+    THREE.ShaderChunk[ "common" ],
+    THREE.ShaderChunk[ "shadowmap_pars_fragment" ],
     "",
     "void main()",
     "{",
+    "	vec3 outgoingLight = vec3( 0.0 );",	// outgoing light does not have an alpha, the surface does
     "   vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);",
     "   for(int l = 0; l < MAX_DIR_LIGHTS; l++) {",
     "       vec3 lightDirection = normalize(vPos - directionalLightPosition[l]);",
     "       addedLights.rgb += clamp(dot(-lightDirection, vNormal), 0.0, 1.0) * directionalLightColor[l];",
     "   }",
+    "",
+    THREE.ShaderChunk[ "shadowmap_fragment" ],
+    "",
     "   gl_FragColor = mix(vec4(diffuse.x, diffuse.y, diffuse.z, 1.0), addedLights, addedLights);",
     "}"
 ].join("\n");
 
 var project = {
     init: function () {
-        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer = new THREE.WebGLRenderer({antialias: true});
         this.renderer.setClearColor(0xffffff);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.shadowMapEnabled = true;
@@ -65,14 +75,14 @@ var project = {
         this.camera.lookAt(project.scene.position);
         this.scene.add(this.camera);
 
-        var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
-        hemiLight.position.set( 0, 500, 0 );
+        var hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.6);
+        hemiLight.position.set(0, 500, 0);
         hemiLight.castShadow = true;
         //this.scene.add( hemiLight );
 
         this.directionalLight = new THREE.DirectionalLight(0xffff55, 1);
         this.directionalLight.position.set(-600, 300, 600);
-        this.directionalLight.target.position.set(0,0,0);
+        this.directionalLight.target.position.set(0, 0, 0);
         this.directionalLight.castShadow = true;
         this.directionalLight.shadowCameraNear = -1000;
         this.directionalLight.shadowCameraFar = 500;
@@ -85,25 +95,25 @@ var project = {
         this.directionalLight.shadowMapHeight = 2048;
         this.scene.add(this.directionalLight);
 
-         //add spotlight for a bit of light
+        //add spotlight for a bit of light
         var spotLight0 = new THREE.SpotLight(0xcccccc);
         spotLight0.position.set(-400, 400, -10);
-        spotLight0.lookAt(0,0,0);
+        spotLight0.lookAt(0, 0, 0);
         spotLight0.castShadow = true;
         spotLight0.shadowMapWidth = 2048;
         spotLight0.shadowMapHeight = 2048;
-        spotLight0.angle = Math.PI/2
+        spotLight0.angle = Math.PI / 2
         this.scene.add(spotLight0);
 
         // create a cube
-        var cubeGeometry = new THREE.BoxGeometry(20, 20, 20);
+        var cubeGeometry = new THREE.BoxGeometry(100, 100, 100);
         var cubeMaterial = new THREE.MeshLambertMaterial({color: 0xff3333});
         var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
         cube.castShadow = true;
 
         // position the cube
         cube.position.x = -4;
-        cube.position.y = 40;
+        cube.position.y = 200;
         cube.position.z = 0;
 
         // add the cube to the scene
@@ -143,7 +153,7 @@ var project = {
         img.src = HEIGHT_MAP;
     },
 
-    loadShaderTerrain: function() {
+    loadShaderTerrain: function () {
         // texture used to generate "bumpiness"
         var bumpTexture = new THREE.ImageUtils.loadTexture(HEIGHT_MAP);
         bumpTexture.wrapS = bumpTexture.wrapT = THREE.RepeatWrapping;
@@ -151,8 +161,9 @@ var project = {
         var bumpScale = 512.0;
 
         // use "this." to create global object
-        var customUniforms = THREE.UniformsUtils.merge(
-            [THREE.UniformsLib['lights'],
+        var customUniforms = THREE.UniformsUtils.merge([
+                THREE.UniformsLib['lights'],
+                THREE.UniformsLib["shadowmap"],
                 {
                     bumpTexture: {type: "t", value: bumpTexture},
                     bumpScale: {type: "f", value: bumpScale},
@@ -178,6 +189,7 @@ var project = {
         var plane = new THREE.Mesh(planeGeo, customMaterial);
         plane.rotation.x = -Math.PI / 2;
         plane.position.y = -1;
+        plane.receiveShadow = true;
         this.scene.add(plane);
     },
 
@@ -241,7 +253,7 @@ var project = {
         this.scene.add(aSkybox);
     },
 
-    loadWater: function() {
+    loadWater: function () {
         // Load textures
         var waterNormals = new THREE.ImageUtils.loadTexture('assets/img/waternormals.jpg');
         waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
@@ -251,7 +263,7 @@ var project = {
             textureWidth: 512,
             textureHeight: 512,
             waterNormals: waterNormals,
-            alpha: 	1.0,
+            alpha: 1.0,
             sunDirection: project.directionalLight.position.normalize(),
             sunColor: 0xffffff,
             waterColor: 0x001e0f,
@@ -262,7 +274,7 @@ var project = {
             project.ms_Water.material
         );
         aMeshMirror.add(project.ms_Water);
-        aMeshMirror.rotation.x = - Math.PI * 0.5;
+        aMeshMirror.rotation.x = -Math.PI * 0.5;
         project.scene.add(aMeshMirror);
     },
 
