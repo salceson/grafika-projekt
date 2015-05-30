@@ -83,7 +83,7 @@ var project = {
 
         this.scene = new THREE.Scene();
 
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.5, 3000000);
+        this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.5, 3000000);
         this.camX = 0;
         this.camera.position.set(0, 200, 500);
         this.camera.lookAt(project.scene.position);
@@ -92,9 +92,9 @@ var project = {
         this.controls = new THREE.FlyControls(this.camera);
         this.controls.movementSpeed = 100;
         this.controls.domElement = this.renderer.domElement;
-        this.controls.rollSpeed = Math.PI / 24;
+        this.controls.rollSpeed = 2 * Math.PI / 24;
         this.controls.autoForward = true;
-        this.controls.dragToLook = false;
+        this.controls.dragToLook = true;
 
         var hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.6);
         hemiLight.position.set(0, 500, 0);
@@ -111,7 +111,7 @@ var project = {
         this.directionalLight.shadowCameraRight = 1000;
         this.directionalLight.shadowCameraTop = 1000;
         this.directionalLight.shadowCameraBottom = -1000;
-        this.directionalLight.shadowCameraVisible = true;
+        //this.directionalLight.shadowCameraVisible = true;
         this.directionalLight.shadowMapWidth = 2048;
         this.directionalLight.shadowMapHeight = 2048;
         this.scene.add(this.directionalLight);
