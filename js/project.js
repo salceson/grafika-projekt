@@ -1,56 +1,66 @@
-HEIGHT_MAP = "assets/island-height-map2.png";
+HEIGHT_MAP = "assets/island-height-map-1024.png";
 
 var vertexShader = [
-    "uniform sampler2D bumpTexture;",
-    "uniform float bumpScale;",
+    "uniform sampler2D heightMapTexture;",
+    "uniform float heightScale;",
     "",
     "varying float vAmount;",
     "varying vec2 vUV;",
     "varying vec3 vPos;",
     "varying vec3 vNormal;",
-    THREE.ShaderChunk[ "common" ],
-    THREE.ShaderChunk[ 'worldpos_vertex'],
-    THREE.ShaderChunk[ "shadowmap_pars_vertex" ],
+    THREE.ShaderChunk["common"],
+    THREE.ShaderChunk['worldpos_vertex'],
+    THREE.ShaderChunk["shadowmap_pars_vertex"],
     "",
     "void main()",
     "{",
     "    vPos = (modelMatrix * vec4(position, 1.0)).xyz;",
     "    vNormal = normalMatrix * normal;",
     "    vUV = uv;",
-    "    vec4 bumpData = texture2D( bumpTexture, uv );",
+    "    vec4 heightData = texture2D( heightMapTexture, uv );",
     "",
-    "    vAmount = bumpData.r; // assuming map is grayscale it doesn't matter if you use r, g, or b.",
+    "    vAmount = heightData.r; // assuming map is grayscale it doesn't matter if you use r, g, or b.",
     "",
     "    // move the position along the normal",
-    "    vec3 newPosition = position + normal * bumpScale * vAmount;",
+    "    vec3 newPosition = position + normal * heightScale * vAmount;",
     "",
     "    gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );",
-    THREE.ShaderChunk[ "shadowmap_vertex" ],
+    THREE.ShaderChunk["shadowmap_vertex"],
     "}"
 ].join("\n");
 
 var fragmentShader = [
     "uniform vec3 diffuse;",
-    "varying vec3 vPos;",
-    "varying vec3 vNormal;",
     "uniform vec3 directionalLightColor[MAX_DIR_LIGHTS];",
     "uniform vec3 directionalLightPosition[MAX_DIR_LIGHTS];",
     "uniform float directionalLightDistance[MAX_DIR_LIGHTS];",
-    THREE.ShaderChunk[ "common" ],
-    THREE.ShaderChunk[ "shadowmap_pars_fragment" ],
+    "uniform sampler2D sandyTexture;",
+    "uniform sampler2D forestTexture;",
+    "uniform sampler2D rockyTexture;",
+    THREE.ShaderChunk["common"],
+    THREE.ShaderChunk["shadowmap_pars_fragment"],
+    "",
+    "varying vec3 vPos;",
+    "varying vec3 vNormal;",
+    "varying float vAmount;",
+    "varying vec2 vUV;",
     "",
     "void main()",
     "{",
-    "	vec3 outgoingLight = vec3( 0.0 );",	// outgoing light does not have an alpha, the surface does
-    "   vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);",
-    "   for(int l = 0; l < MAX_DIR_LIGHTS; l++) {",
-    "       vec3 lightDirection = normalize(vPos - directionalLightPosition[l]);",
-    "       addedLights.rgb += clamp(dot(-lightDirection, vNormal), 0.0, 1.0) * directionalLightColor[l];",
-    "   }",
-    "",
-    THREE.ShaderChunk[ "shadowmap_fragment" ],
-    "",
-    "   gl_FragColor = mix(vec4(diffuse.x, diffuse.y, diffuse.z, 1.0), addedLights, addedLights);",
+    //"	vec3 outgoingLight = vec3( 0.0 );",	// outgoing light does not have an alpha, the surface does
+    //"   vec4 addedLights = vec4(0.0, 0.0, 0.0, 1.0);",
+    //"   for(int l = 0; l < MAX_DIR_LIGHTS; l++) {",
+    //"       vec3 lightDirection = normalize(vPos - directionalLightPosition[l]);",
+    //"       addedLights.rgb += clamp(dot(-lightDirection, vNormal), 0.0, 1.0) * directionalLightColor[l];",
+    //"   }",
+    //"",
+    //THREE.ShaderChunk["shadowmap_fragment"],
+    //"",
+    //"   gl_FragColor = mix(vec4(diffuse.x, diffuse.y, diffuse.z, 1.0), addedLights, addedLights);",
+    "   vec4 sandy = (smoothstep(0.00, 0.00, vAmount) - smoothstep(0.03, 0.05, vAmount)) * texture2D( sandyTexture, vUV * 128.0 );",
+    "   vec4 forest = (smoothstep(0.03, 0.05, vAmount) - smoothstep(0.25, 0.30, vAmount)) * texture2D( forestTexture, vUV * 20.0 );",
+    "   vec4 rocky = (smoothstep(0.20, 0.40, vAmount))                                   * texture2D( rockyTexture, vUV * 20.0 );",
+    "   gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0) + sandy + forest + rocky; //, 1.0);",
     "}"
 ].join("\n");
 
@@ -155,24 +165,40 @@ var project = {
 
     loadShaderTerrain: function () {
         // texture used to generate "bumpiness"
-        var bumpTexture = new THREE.ImageUtils.loadTexture(HEIGHT_MAP);
-        bumpTexture.wrapS = bumpTexture.wrapT = THREE.RepeatWrapping;
+        var heightMapTexture = new THREE.ImageUtils.loadTexture(HEIGHT_MAP);
+        heightMapTexture.wrapS = heightMapTexture.wrapT = THREE.RepeatWrapping;
         // magnitude of normal displacement
-        var bumpScale = 512.0;
+        var heightScale = 640.0;
+
+        var anisotropy = project.renderer.getMaxAnisotropy();
+
+        var sandyTexture = new THREE.ImageUtils.loadTexture('assets/img/sand2-512.jpg');
+        sandyTexture.wrapS = sandyTexture.wrapT = THREE.RepeatWrapping;
+        sandyTexture.anisotropy = anisotropy;
+
+        var forestTexture = new THREE.ImageUtils.loadTexture('assets/img/forest2-2048.jpg');
+        forestTexture.wrapS = forestTexture.wrapT = THREE.RepeatWrapping;
+        forestTexture.anisotropy = anisotropy;
+
+        var rockyTexture = new THREE.ImageUtils.loadTexture('assets/img/rock-512.jpg');
+        rockyTexture.wrapS = rockyTexture.wrapT = THREE.RepeatWrapping;
+        rockyTexture.anisotropy = anisotropy;
 
         // use "this." to create global object
         var customUniforms = THREE.UniformsUtils.merge([
                 THREE.UniformsLib['lights'],
                 THREE.UniformsLib["shadowmap"],
                 {
-                    bumpTexture: {type: "t", value: bumpTexture},
-                    bumpScale: {type: "f", value: bumpScale},
+                    heightScale: {type: "f", value: heightScale},
                     diffuse: {type: 'c', value: new THREE.Color(0x00ff00)}
                 }
             ]
         );
 
-        customUniforms.bumpTexture = {type: "t", value: bumpTexture};
+        customUniforms.heightMapTexture = {type: "t", value: heightMapTexture};
+        customUniforms.sandyTexture = {type: "t", value: sandyTexture};
+        customUniforms.forestTexture = {type: "t", value: forestTexture};
+        customUniforms.rockyTexture = {type: "t", value: rockyTexture};
 
         // create custom material from the shader code above
         //   that is within specially labelled script tags
@@ -185,10 +211,10 @@ var project = {
                 lights: true
             });
 
-        var planeGeo = new THREE.PlaneGeometry(10000, 10000, 269, 269);
+        var planeGeo = new THREE.PlaneGeometry(10000, 10000, 300, 300);
         var plane = new THREE.Mesh(planeGeo, customMaterial);
         plane.rotation.x = -Math.PI / 2;
-        plane.position.y = -1;
+        plane.position.y = -5;
         plane.receiveShadow = true;
         this.scene.add(plane);
     },
@@ -291,8 +317,8 @@ var project = {
     },
 
     render: function () {
-        this.camX += 0.3;
-        this.camera.position.set(this.camX, 500, 1000);
+        this.camX += 0.6;
+        this.camera.position.set(this.camX, 500, 500);
         this.camera.lookAt(project.scene.position);
         this.ms_Water.render();
         this.renderer.render(this.scene, this.camera);
