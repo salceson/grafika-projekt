@@ -74,8 +74,10 @@ var project = {
         this.renderer.autoClear = true;
         this.renderer.autoClearColor = true;
 
-        document.body.appendChild(this.renderer.domElement);
+        $('#WebGL-output').append(this.renderer.domElement);
         window.addEventListener('resize', this.onWindowResize, false);
+
+        this.stats = this.initStats();
 
         this.scene = new THREE.Scene();
 
@@ -211,7 +213,7 @@ var project = {
                 lights: true
             });
 
-        var planeGeo = new THREE.PlaneGeometry(10000, 10000, 300, 300);
+        var planeGeo = new THREE.PlaneBufferGeometry(10000, 10000, 300, 300);
         var plane = new THREE.Mesh(planeGeo, customMaterial);
         plane.rotation.x = -Math.PI / 2;
         plane.position.y = -5;
@@ -304,6 +306,22 @@ var project = {
         project.scene.add(aMeshMirror);
     },
 
+    initStats: function () {
+
+        var stats = new Stats();
+
+        stats.setMode(0); // 0: fps, 1: ms
+
+        // Align top-left
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.left = '0px';
+        stats.domElement.style.top = '0px';
+
+        $("#Stats-output").append(stats.domElement);
+
+        return stats;
+    },
+
     onWindowResize: function () {
         project.camera.aspect = window.innerWidth / window.innerHeight;
         project.camera.updateProjectionMatrix();
@@ -317,6 +335,8 @@ var project = {
     },
 
     render: function () {
+        this.stats.update();
+
         this.camX += 0.6;
         this.camera.position.set(this.camX, 500, 500);
         this.camera.lookAt(project.scene.position);
