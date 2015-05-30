@@ -77,6 +77,8 @@ var project = {
         $('#WebGL-output').append(this.renderer.domElement);
         window.addEventListener('resize', this.onWindowResize, false);
 
+        this.clock = new THREE.Clock();
+
         this.stats = this.initStats();
 
         this.scene = new THREE.Scene();
@@ -86,6 +88,13 @@ var project = {
         this.camera.position.set(0, 200, 500);
         this.camera.lookAt(project.scene.position);
         this.scene.add(this.camera);
+
+        this.controls = new THREE.FlyControls(this.camera);
+        this.controls.movementSpeed = 100;
+        this.controls.domElement = this.renderer.domElement;
+        this.controls.rollSpeed = Math.PI / 24;
+        this.controls.autoForward = true;
+        this.controls.dragToLook = false;
 
         var hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.6);
         hemiLight.position.set(0, 500, 0);
@@ -335,11 +344,16 @@ var project = {
     },
 
     render: function () {
+        var deltaTime = project.clock.getDelta();
+
         this.stats.update();
 
-        this.camX += 0.6;
-        this.camera.position.set(this.camX, 500, 500);
-        this.camera.lookAt(project.scene.position);
+        //this.camX += 0.6;
+        //this.camera.position.set(this.camX, 500, 500);
+        //this.camera.lookAt(project.scene.position);
+
+        this.controls.update(deltaTime);
+
         this.ms_Water.render();
         this.renderer.render(this.scene, this.camera);
     },
