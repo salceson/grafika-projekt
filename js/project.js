@@ -58,8 +58,8 @@ var fragmentShader = [
     //"",
     //"   gl_FragColor = mix(vec4(diffuse.x, diffuse.y, diffuse.z, 1.0), addedLights, addedLights);",
     "   vec4 sandy = (smoothstep(0.00, 0.00, vAmount) - smoothstep(0.03, 0.05, vAmount)) * texture2D( sandyTexture, vUV * 128.0 );",
-    "   vec4 forest = (smoothstep(0.03, 0.05, vAmount) - smoothstep(0.25, 0.30, vAmount)) * texture2D( forestTexture, vUV * 20.0 );",
-    "   vec4 rocky = (smoothstep(0.20, 0.40, vAmount))                                   * texture2D( rockyTexture, vUV * 20.0 );",
+    "   vec4 forest = (smoothstep(0.03, 0.05, vAmount) - smoothstep(0.25, 0.30, vAmount)) * texture2D( forestTexture, vUV * 16.0 );",
+    "   vec4 rocky = (smoothstep(0.20, 0.40, vAmount))                                   * texture2D( rockyTexture, vUV * 32.0 );",
     "   gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0) + sandy + forest + rocky; //, 1.0);",
     "}"
 ].join("\n");
