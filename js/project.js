@@ -74,16 +74,27 @@ var project = {
         this.renderer.autoClear = true;
         this.renderer.autoClearColor = true;
 
-        document.body.appendChild(this.renderer.domElement);
+        $('#WebGL-output').append(this.renderer.domElement);
         window.addEventListener('resize', this.onWindowResize, false);
+
+        this.clock = new THREE.Clock();
+
+        this.stats = this.initStats();
 
         this.scene = new THREE.Scene();
 
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.5, 3000000);
+        this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.5, 3000000);
         this.camX = 0;
         this.camera.position.set(0, 200, 500);
         this.camera.lookAt(project.scene.position);
         this.scene.add(this.camera);
+
+        this.controls = new THREE.FlyControls(this.camera);
+        this.controls.movementSpeed = 100;
+        this.controls.domElement = this.renderer.domElement;
+        this.controls.rollSpeed = 2 * Math.PI / 24;
+        this.controls.autoForward = true;
+        this.controls.dragToLook = true;
 
         var hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.6);
         hemiLight.position.set(0, 500, 0);
@@ -100,7 +111,7 @@ var project = {
         this.directionalLight.shadowCameraRight = 1000;
         this.directionalLight.shadowCameraTop = 1000;
         this.directionalLight.shadowCameraBottom = -1000;
-        this.directionalLight.shadowCameraVisible = true;
+        //this.directionalLight.shadowCameraVisible = true;
         this.directionalLight.shadowMapWidth = 2048;
         this.directionalLight.shadowMapHeight = 2048;
         this.scene.add(this.directionalLight);
@@ -304,6 +315,22 @@ var project = {
         project.scene.add(aMeshMirror);
     },
 
+    initStats: function () {
+
+        var stats = new Stats();
+
+        stats.setMode(0); // 0: fps, 1: ms
+
+        // Align top-left
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.left = '0px';
+        stats.domElement.style.top = '0px';
+
+        $("#Stats-output").append(stats.domElement);
+
+        return stats;
+    },
+
     onWindowResize: function () {
         project.camera.aspect = window.innerWidth / window.innerHeight;
         project.camera.updateProjectionMatrix();
@@ -317,9 +344,16 @@ var project = {
     },
 
     render: function () {
-        this.camX += 0.6;
-        this.camera.position.set(this.camX, 500, 500);
-        this.camera.lookAt(project.scene.position);
+        var deltaTime = project.clock.getDelta();
+
+        this.stats.update();
+
+        //this.camX += 0.6;
+        //this.camera.position.set(this.camX, 500, 500);
+        //this.camera.lookAt(project.scene.position);
+
+        this.controls.update(deltaTime);
+
         this.ms_Water.render();
         this.renderer.render(this.scene, this.camera);
     },
