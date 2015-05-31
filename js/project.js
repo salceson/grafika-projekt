@@ -8,9 +8,9 @@ var vertexShader = [
     "varying vec2 vUV;",
     "varying vec3 vPos;",
     "varying vec3 vNormal;",
-    THREE.ShaderChunk["common"],
-    THREE.ShaderChunk['worldpos_vertex'],
-    THREE.ShaderChunk["shadowmap_pars_vertex"],
+    //THREE.ShaderChunk["common"],
+    //THREE.ShaderChunk['worldpos_vertex'],
+    //THREE.ShaderChunk["shadowmap_pars_vertex"],
     "",
     "void main()",
     "{",
@@ -25,7 +25,7 @@ var vertexShader = [
     "    vec3 newPosition = position + normal * heightScale * vAmount;",
     "",
     "    gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );",
-    THREE.ShaderChunk["shadowmap_vertex"],
+    //THREE.ShaderChunk["shadowmap_vertex"],
     "}"
 ].join("\n");
 
@@ -37,8 +37,8 @@ var fragmentShader = [
     "uniform sampler2D sandyTexture;",
     "uniform sampler2D forestTexture;",
     "uniform sampler2D rockyTexture;",
-    THREE.ShaderChunk["common"],
-    THREE.ShaderChunk["shadowmap_pars_fragment"],
+    //THREE.ShaderChunk["common"],
+    //THREE.ShaderChunk["shadowmap_pars_fragment"],
     "",
     "varying vec3 vPos;",
     "varying vec3 vNormal;",
@@ -112,7 +112,7 @@ var project = {
         spotLight0.castShadow = true;
         spotLight0.shadowMapWidth = 2048;
         spotLight0.shadowMapHeight = 2048;
-        spotLight0.angle = Math.PI / 2
+        spotLight0.angle = Math.PI / 2;
         this.scene.add(spotLight0);
 
         // create a cube
@@ -143,8 +143,7 @@ var project = {
         img.onload = function () {
             var data = project.getHeightData(img, 0.2);
 
-            var geometry = new THREE.PlaneGeometry(10000, 10000, 269, 269);
-            var texture = THREE.ImageUtils.loadTexture(HEIGHT_MAP);
+            var geometry = new THREE.PlaneBufferGeometry(10000, 10000, 269, 269);
             var material = new THREE.MeshLambertMaterial({color: 0x00FF00});
             var plane = new THREE.Mesh(geometry, material);
             plane.rotation.x = -Math.PI / 2;
@@ -170,7 +169,8 @@ var project = {
         // magnitude of normal displacement
         var heightScale = 640.0;
 
-        var anisotropy = project.renderer.getMaxAnisotropy();
+        //var anisotropy = project.renderer.getMaxAnisotropy();
+        var anisotropy = 1;
 
         var sandyTexture = new THREE.ImageUtils.loadTexture('assets/img/sand2-512.jpg');
         sandyTexture.wrapS = sandyTexture.wrapT = THREE.RepeatWrapping;
@@ -211,7 +211,7 @@ var project = {
                 lights: true
             });
 
-        var planeGeo = new THREE.PlaneGeometry(10000, 10000, 300, 300);
+        var planeGeo = new THREE.PlaneBufferGeometry(10000, 10000, 300, 300);
         var plane = new THREE.Mesh(planeGeo, customMaterial);
         plane.rotation.x = -Math.PI / 2;
         plane.position.y = -5;
