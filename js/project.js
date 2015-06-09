@@ -85,7 +85,7 @@ var project = {
 
         this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.5, 3000000);
         this.camX = 0;
-        this.camera.position.set(0, 500, 2000);
+        this.camera.position.set(-1000, 300, -1000);
         this.camera.lookAt(project.scene.position);
         this.scene.add(this.camera);
 
@@ -96,13 +96,13 @@ var project = {
         this.controls.autoForward = true;
         this.controls.dragToLook = true;
 
-        var hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.6);
-        hemiLight.position.set(0, 500, 0);
+        var hemiLight = new THREE.HemisphereLight( 0xEEEEFF, 0x000000, 0.9 );
+        hemiLight.position.set( 0, 500, 0 );
         hemiLight.castShadow = true;
-        //this.scene.add( hemiLight );
+        this.scene.add( hemiLight );
 
-        this.directionalLight = new THREE.DirectionalLight(0xffff55, 1);
-        this.directionalLight.position.set(-600, 300, 600);
+        this.directionalLight = new THREE.DirectionalLight(0xffffcc, 0.6);
+        this.directionalLight.position.set(-600, 400, 0);
         this.directionalLight.target.position.set(0, 0, 0);
         this.directionalLight.castShadow = true;
         this.directionalLight.shadowCameraNear = -1000;
@@ -115,16 +115,6 @@ var project = {
         this.directionalLight.shadowMapWidth = 2048;
         this.directionalLight.shadowMapHeight = 2048;
         this.scene.add(this.directionalLight);
-
-        //add spotlight for a bit of light
-        var spotLight0 = new THREE.SpotLight(0xcccccc);
-        spotLight0.position.set(-400, 400, -10);
-        spotLight0.lookAt(0, 0, 0);
-        spotLight0.castShadow = true;
-        spotLight0.shadowMapWidth = 2048;
-        spotLight0.shadowMapHeight = 2048;
-        spotLight0.angle = Math.PI / 2;
-        this.scene.add(spotLight0);
 
         // create a cube
         var cubeGeometry = new THREE.BoxGeometry(100, 100, 100);
@@ -372,6 +362,8 @@ var project = {
 
             object.position.y = -20;
             object.position.z = -90;
+            object.receiveShadow = true;
+            object.castShadow = true;
             var mat = new THREE.Matrix4();
             mat.makeScale(0.000001, 0.000001, 0.000001);
             object.scale = mat;
