@@ -92,7 +92,7 @@ var project = {
         this.controls = new THREE.FlyControls(this.camera);
         this.controls.movementSpeed = 100;
         this.controls.domElement = this.renderer.domElement;
-        this.controls.rollSpeed = 2 * Math.PI / 24;
+        this.controls.rollSpeed = new THREE.Vector3(2 * Math.PI / 24, 2 * Math.PI / 24, 4 * Math.PI / 24);
         this.controls.autoForward = true;
         this.controls.dragToLook = true;
 

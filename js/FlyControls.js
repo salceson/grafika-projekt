@@ -12,7 +12,9 @@ THREE.FlyControls = function ( object, domElement ) {
 	// API
 
 	this.movementSpeed = 1.0;
-	this.rollSpeed = 0.005;
+	this.rollSpeed = new THREE.Vector3(0.005, 0.005, 0.005);
+	this.gravityValue = 0.5;
+	this.lift = this.gravityValue;
 
 	this.dragToLook = false;
 	this.autoForward = false;
@@ -199,18 +201,28 @@ THREE.FlyControls = function ( object, domElement ) {
 	this.update = function( delta ) {
 
 		var moveMult = delta * this.movementSpeed;
-		var rotMult = delta * this.rollSpeed;
+		var rotMult = new THREE.Vector3().copy(this.rollSpeed).multiplyScalar(delta);
 
 		this.object.translateX( this.moveVector.x * moveMult );
 		this.object.translateY( this.moveVector.y * moveMult );
 		this.object.translateZ( this.moveVector.z * moveMult );
 
-		this.tmpQuaternion.set( this.rotationVector.x * rotMult, this.rotationVector.y * rotMult, this.rotationVector.z * rotMult, 1 ).normalize();
+		this.tmpQuaternion.set( this.rotationVector.x * rotMult.x, this.rotationVector.y * rotMult.y, this.rotationVector.z * rotMult.z, 1 ).normalize();
 		this.object.quaternion.multiply( this.tmpQuaternion );
+
+		//apply gravity
+		var gravityVector = new THREE.Vector3(0, -1 * this.gravityValue, 0);
+		this.object.position.add(gravityVector);
+
+		//apply lift
+		var liftVector = new THREE.Vector3(0, this.lift, 0);
+		this.object.translateX( liftVector.x );
+		this.object.translateY( liftVector.y );
+		this.object.translateZ( liftVector.z );
+
 
 		// expose the rotation vector for convenience
 		this.object.rotation.setFromQuaternion( this.object.quaternion, this.object.rotation.order );
-
 
 	};
 
