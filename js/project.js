@@ -341,12 +341,10 @@ var project = {
 
         };
 
-        var texture = new THREE.Texture();
-
         var onProgress = function (xhr) {
             if (xhr.lengthComputable) {
                 var percentComplete = xhr.loaded / xhr.total * 100;
-                console.log(Math.round(percentComplete, 2) + '% downloaded');
+                console.log(Math.round(percentComplete) + '% downloaded');
             }
         };
 
@@ -355,16 +353,6 @@ var project = {
         };
 
 
-        //var loader = new THREE.ImageLoader( manager );
-        //loader.load( 'textures/UV_Grid_Sm.jpg', function ( image ) {
-        //
-        //    texture.image = image;
-        //    texture.needsUpdate = true;
-        //
-        //} );
-
-        // model
-
         var loader = new THREE.OBJLoader(manager);
         loader.load('assets/airplane/a380.obj', function (object) {
 
@@ -372,7 +360,10 @@ var project = {
 
                 if (child instanceof THREE.Mesh) {
 
-                    //child.material.map = texture;
+                    child.material = new THREE.MeshPhongMaterial({
+                        color: 0xffffff,
+                        side: THREE.DoubleSide
+                    });
                     child.scale.set(0.01, 0.01, 0.01);
 
                 }
@@ -387,7 +378,6 @@ var project = {
             project.camera.add(object);
 
         }, onProgress, onError);
-
     },
 
     onWindowResize: function () {
