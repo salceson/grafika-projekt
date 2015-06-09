@@ -98,7 +98,7 @@ var project = {
 
         var hemiLight = new THREE.HemisphereLight( 0xEEEEFF, 0x000000, 0.9 );
         hemiLight.position.set( 0, 500, 0 );
-        hemiLight.castShadow = true;
+        //hemiLight.castShadow = true;
         this.scene.add( hemiLight );
 
         this.directionalLight = new THREE.DirectionalLight(0xffffcc, 0.6);
