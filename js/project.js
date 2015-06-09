@@ -360,7 +360,7 @@ var project = {
 
                 if (child instanceof THREE.Mesh) {
 
-                    child.material = new THREE.MeshLambertMaterial({
+                    child.material = new THREE.MeshPhongMaterial({
                         color: 0xffffff,
                         side: THREE.DoubleSide
                     });
