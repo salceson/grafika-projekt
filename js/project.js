@@ -116,20 +116,6 @@ var project = {
         this.directionalLight.shadowMapHeight = 2048;
         this.scene.add(this.directionalLight);
 
-        // create a cube
-        var cubeGeometry = new THREE.BoxGeometry(100, 100, 100);
-        var cubeMaterial = new THREE.MeshLambertMaterial({color: 0xff3333});
-        var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-        cube.castShadow = true;
-
-        // position the cube
-        cube.position.x = -4;
-        cube.position.y = 200;
-        cube.position.z = 0;
-
-        // add the cube to the scene
-        this.scene.add(cube);
-
         this.loadSkyBox();
 
         this.loadShaderTerrain();
