@@ -85,14 +85,14 @@ var project = {
 
         this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.5, 3000000);
         this.camX = 0;
-        this.camera.position.set(0, 200, 500);
+        this.camera.position.set(0, 500, 2000);
         this.camera.lookAt(project.scene.position);
         this.scene.add(this.camera);
 
         this.controls = new THREE.FlyControls(this.camera);
         this.controls.movementSpeed = 100;
         this.controls.domElement = this.renderer.domElement;
-        this.controls.rollSpeed = new THREE.Vector3(2 * Math.PI / 24, 2 * Math.PI / 24, 4 * Math.PI / 24);
+        this.controls.rollSpeed = new THREE.Vector3(0.5 * Math.PI / 24, 0.5 * Math.PI / 24, 2 * Math.PI / 24);
         this.controls.autoForward = true;
         this.controls.dragToLook = true;
 
@@ -379,8 +379,8 @@ var project = {
 
             });
 
-            object.position.y = -5;
-            object.position.z = -100;
+            object.position.y = -20;
+            object.position.z = -90;
             var mat = new THREE.Matrix4();
             mat.makeScale(0.000001, 0.000001, 0.000001);
             object.scale = mat;
