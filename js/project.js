@@ -85,14 +85,14 @@ var project = {
 
         this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.5, 3000000);
         this.camX = 0;
-        this.camera.position.set(0, 200, 500);
+        this.camera.position.set(0, 500, 2000);
         this.camera.lookAt(project.scene.position);
         this.scene.add(this.camera);
 
         this.controls = new THREE.FlyControls(this.camera);
         this.controls.movementSpeed = 100;
         this.controls.domElement = this.renderer.domElement;
-        this.controls.rollSpeed = 2 * Math.PI / 24;
+        this.controls.rollSpeed = new THREE.Vector3(0.5 * Math.PI / 24, 0.5 * Math.PI / 24, 2 * Math.PI / 24);
         this.controls.autoForward = true;
         this.controls.dragToLook = true;
 
@@ -146,6 +146,8 @@ var project = {
         //this.loadTerrain();
 
         this.loadWater();
+
+        this.loadModel();
     },
 
     loadTerrain: function () {
@@ -329,6 +331,63 @@ var project = {
         $("#Stats-output").append(stats.domElement);
 
         return stats;
+    },
+
+    loadModel: function () {
+        var manager = new THREE.LoadingManager();
+        manager.onProgress = function (item, loaded, total) {
+
+            console.log(item, loaded, total);
+
+        };
+
+        var texture = new THREE.Texture();
+
+        var onProgress = function (xhr) {
+            if (xhr.lengthComputable) {
+                var percentComplete = xhr.loaded / xhr.total * 100;
+                console.log(Math.round(percentComplete, 2) + '% downloaded');
+            }
+        };
+
+        var onError = function (xhr) {
+            console.log("error in loading file");
+        };
+
+
+        //var loader = new THREE.ImageLoader( manager );
+        //loader.load( 'textures/UV_Grid_Sm.jpg', function ( image ) {
+        //
+        //    texture.image = image;
+        //    texture.needsUpdate = true;
+        //
+        //} );
+
+        // model
+
+        var loader = new THREE.OBJLoader(manager);
+        loader.load('assets/airplane/a380.obj', function (object) {
+
+            object.traverse(function (child) {
+
+                if (child instanceof THREE.Mesh) {
+
+                    //child.material.map = texture;
+                    child.scale.set(0.01, 0.01, 0.01);
+
+                }
+
+            });
+
+            object.position.y = -20;
+            object.position.z = -90;
+            var mat = new THREE.Matrix4();
+            mat.makeScale(0.000001, 0.000001, 0.000001);
+            object.scale = mat;
+            project.camera.add(object);
+
+        }, onProgress, onError);
+
     },
 
     onWindowResize: function () {
