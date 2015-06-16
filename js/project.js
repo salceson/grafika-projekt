@@ -84,7 +84,6 @@ var project = {
         this.scene = new THREE.Scene();
 
         this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.5, 3000000);
-        this.camX = 0;
         this.camera.position.set(-1000, 300, -1000);
         this.camera.lookAt(project.scene.position);
         this.scene.add(this.camera);
@@ -118,21 +117,33 @@ var project = {
 
         this.loadSkyBox();
 
+        this.worldSize = 10240;
+        this.heightScale = 640;
+        this.worldElevation = -5;
+
         this.loadShaderTerrain();
         //this.loadTerrain();
 
         this.loadWater();
 
         this.loadModel();
+
+        var img = new Image();
+        img.onload = function () {
+            project.heightData = project.getHeightData(img, project.heightScale / 256);
+        };
+        img.src = HEIGHT_MAP;
+        //this.mapScale = 37.9259259;
+        this.mapScale = 10.0;
     },
 
     loadTerrain: function () {
         // terrain
         var img = new Image();
         img.onload = function () {
-            var data = project.getHeightData(img, 0.2);
+            var data = project.getHeightData(img, project.heightScale / 256);
 
-            var geometry = new THREE.PlaneBufferGeometry(10000, 10000, 269, 269);
+            var geometry = new THREE.PlaneGeometry(project.worldSize, project.worldSize, 269, 269);
             var material = new THREE.MeshLambertMaterial({color: 0x00FF00});
             var plane = new THREE.Mesh(geometry, material);
             plane.rotation.x = -Math.PI / 2;
@@ -156,7 +167,7 @@ var project = {
         var heightMapTexture = new THREE.ImageUtils.loadTexture(HEIGHT_MAP);
         heightMapTexture.wrapS = heightMapTexture.wrapT = THREE.RepeatWrapping;
         // magnitude of normal displacement
-        var heightScale = 640.0;
+        var heightScale = project.heightScale;
 
         //var anisotropy = project.renderer.getMaxAnisotropy();
         var anisotropy = 1;
@@ -200,10 +211,10 @@ var project = {
                 lights: true
             });
 
-        var planeGeo = new THREE.PlaneBufferGeometry(10000, 10000, 300, 300);
+        var planeGeo = new THREE.PlaneBufferGeometry(project.worldSize, project.worldSize, 300, 300);
         var plane = new THREE.Mesh(planeGeo, customMaterial);
         plane.rotation.x = -Math.PI / 2;
-        plane.position.y = -5;
+        plane.position.y = project.worldElevation;
         plane.receiveShadow = true;
         this.scene.add(plane);
     },
@@ -232,10 +243,23 @@ var project = {
         var j = 0;
         for (var i = 0; i < pix.length; i += 4) {
             var all = pix[i] + pix[i + 1] + pix[i + 2];
-            data[j++] = all / (12 * scale);
+            data[j++] = all * scale / 3;
         }
 
         return data;
+    },
+
+    getHeightAtPoint: function(x, y) {
+        if(project.heightData == undefined) {
+            return 0;
+        }
+
+        var width = Math.sqrt(project.heightData.length);
+
+        var xpos = Math.round((x + project.worldSize/2) / project.mapScale);
+        var ypos = Math.round((y + project.worldSize/2) / project.mapScale);
+
+        return project.heightData[ypos * width + xpos] + project.worldElevation;
     },
 
     loadSkyBox: function loadSkyBox() {
@@ -354,6 +378,7 @@ var project = {
             mat.makeScale(0.000001, 0.000001, 0.000001);
             object.scale = mat;
             project.camera.add(object);
+            project.aircraftModel = object;
 
         }, onProgress, onError);
     },
@@ -371,21 +396,31 @@ var project = {
     },
 
     render: function () {
-        var deltaTime = project.clock.getDelta();
+        //var deltaTime = project.clock.getDelta();
 
-        this.stats.update();
+        //this.stats.update();
 
-        //this.camX += 0.6;
-        //this.camera.position.set(this.camX, 500, 500);
-        //this.camera.lookAt(project.scene.position);
-
-        this.controls.update(deltaTime);
+        //this.controls.update(deltaTime);
 
         this.ms_Water.render();
         this.renderer.render(this.scene, this.camera);
     },
 
     update: function update() {
+        var aircraftPos = new THREE.Vector3().copy(project.aircraftModel.position);
+        aircraftPos.applyProjection(project.camera.matrixWorld);
+        var terrHeight = project.getHeightAtPoint(aircraftPos.x, aircraftPos.z);
+        var aircraftHeight = aircraftPos.y;
+        console.log(terrHeight + ", " + aircraftHeight + ", " + aircraftHeight / terrHeight);
+
+        var deltaTime = project.clock.getDelta();
+
+        this.stats.update();
+
+        if(aircraftHeight > terrHeight) {
+            this.controls.update(deltaTime);
+        }
+
         this.ms_Water.material.uniforms.time.value += 1.0 / 60.0;
     }
 };
