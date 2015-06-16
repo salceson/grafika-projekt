@@ -250,8 +250,8 @@ var project = {
     },
 
     getHeightAtPoint: function(x, y) {
-        if(project.heightData == undefined) {
-            return 0;
+        if(project.heightData == undefined || Math.abs(x) >= project.worldSize/2 || Math.abs(y) >= project.worldSize/2) {
+            return project.worldElevation;
         }
 
         var width = Math.sqrt(project.heightData.length);
@@ -407,17 +407,18 @@ var project = {
     },
 
     update: function update() {
-        var aircraftPos = new THREE.Vector3().copy(project.aircraftModel.position);
-        aircraftPos.applyProjection(project.camera.matrixWorld);
-        var terrHeight = project.getHeightAtPoint(aircraftPos.x, aircraftPos.z);
-        var aircraftHeight = aircraftPos.y;
-        console.log(terrHeight + ", " + aircraftHeight + ", " + aircraftHeight / terrHeight);
+        if(project.aircraftModel) {
+            var aircraftPos = new THREE.Vector3().copy(project.aircraftModel.position);
+            aircraftPos.applyProjection(project.camera.matrixWorld);
+            var terrHeight = project.getHeightAtPoint(aircraftPos.x, aircraftPos.z);
+            var aircraftHeight = aircraftPos.y;
+        }
 
         var deltaTime = project.clock.getDelta();
 
         this.stats.update();
 
-        if(aircraftHeight > terrHeight) {
+        if(project.aircraftModel && aircraftHeight > terrHeight) {
             this.controls.update(deltaTime);
         }
 
