@@ -66,6 +66,8 @@ var fragmentShader = [
 
 var project = {
     init: function () {
+        this.previousPosition = new THREE.Vector3(0, 0, 0);
+
         this.renderer = new THREE.WebGLRenderer({antialias: true});
         this.renderer.setClearColor(0xffffff);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -84,7 +86,6 @@ var project = {
         this.scene = new THREE.Scene();
 
         this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.5, 3000000);
-        this.camX = 0;
         this.camera.position.set(-1000, 300, -1000);
         this.camera.lookAt(project.scene.position);
         this.scene.add(this.camera);
@@ -103,18 +104,26 @@ var project = {
 
         this.directionalLight = new THREE.DirectionalLight(0xffffcc, 0.6);
         this.directionalLight.position.set(-600, 400, 0);
-        this.directionalLight.target.position.set(0, 0, 0);
+        //this.directionalLight.target.position.set(0, 0, 0);
         this.directionalLight.castShadow = true;
         this.directionalLight.shadowCameraNear = -1000;
         this.directionalLight.shadowCameraFar = 500;
-        this.directionalLight.shadowCameraLeft = -1000;
-        this.directionalLight.shadowCameraRight = 1000;
-        this.directionalLight.shadowCameraTop = 1000;
-        this.directionalLight.shadowCameraBottom = -1000;
-        //this.directionalLight.shadowCameraVisible = true;
+        this.directionalLight.shadowCameraLeft = -100;
+        this.directionalLight.shadowCameraRight = 100;
+        this.directionalLight.shadowCameraTop = 100;
+        this.directionalLight.shadowCameraBottom = -100;
+        this.directionalLight.shadowCameraVisible = true;
         this.directionalLight.shadowMapWidth = 2048;
         this.directionalLight.shadowMapHeight = 2048;
         this.scene.add(this.directionalLight);
+
+        this.dirLightHelper = new THREE.Mesh(
+            new THREE.BoxGeometry(1, 1, 1, 1, 1, 1),
+            new THREE.MeshNormalMaterial({transparent: true, opacity: 0})
+        );
+        this.dirLightHelper.position.set(0, 0, 0);
+        this.directionalLight.target = this.dirLightHelper;
+        this.scene.add(this.dirLightHelper);
 
         this.loadSkyBox();
 
@@ -386,6 +395,16 @@ var project = {
     },
 
     update: function update() {
+        var newPosition = this.camera.position;
+        var minusPreviousPosition = new THREE.Vector3(0, 0, 0).copy(this.previousPosition).multiplyScalar(-1);
+        var delta = new THREE.Vector3(0, 0, 0).copy(newPosition).add(minusPreviousPosition);
+        var dirPos = new THREE.Vector3(0, 0, 0).copy(this.directionalLight.position).add(delta);
+        var dirTrgtPos = new THREE.Vector3(0, 0, 0).copy(this.directionalLight.target.position).add(delta);
+        this.directionalLight.position.set(dirPos.x, dirPos.y, dirPos.z);
+        this.dirLightHelper.position.set(dirTrgtPos.x, dirTrgtPos.y, dirTrgtPos.z);
+        //this.directionalLight.target.position.set(dirTrgtPos.x, dirTrgtPos.y, dirTrgtPos.z);
+        //this.directionalLight.target.updateMatrixWorld();
         this.ms_Water.material.uniforms.time.value += 1.0 / 60.0;
+        this.previousPosition = new THREE.Vector3(0, 0, 0).copy(newPosition);
     }
 };
