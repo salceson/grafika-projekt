@@ -13,7 +13,7 @@ THREE.FlyControls = function ( object, domElement ) {
 
 	this.movementSpeed = 1.0;
 	this.rollSpeed = new THREE.Vector3(0.005, 0.005, 0.005);
-	this.gravityValue = 0.5;
+	this.gravityValue = 50;
 	this.lift = this.gravityValue;
 
 	this.dragToLook = false;
@@ -211,11 +211,13 @@ THREE.FlyControls = function ( object, domElement ) {
 		this.object.quaternion.multiply( this.tmpQuaternion );
 
 		//apply gravity
-		var gravityVector = new THREE.Vector3(0, -1 * this.gravityValue, 0);
+		var gravityDiff = delta * this.gravityValue;
+		var gravityVector = new THREE.Vector3(0, -1 * gravityDiff, 0);
 		this.object.position.add(gravityVector);
 
 		//apply lift
-		var liftVector = new THREE.Vector3(0, this.lift, 0);
+		var liftDiff = delta * this.lift;
+		var liftVector = new THREE.Vector3(0, liftDiff, 0);
 		this.object.translateX( liftVector.x );
 		this.object.translateY( liftVector.y );
 		this.object.translateZ( liftVector.z );
