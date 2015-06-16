@@ -200,8 +200,6 @@ THREE.FlyControls = function ( object, domElement ) {
 
 	this.update = function( delta ) {
 
-		console.log("delta: " + delta);
-
 		var moveMult = delta * this.movementSpeed;
 		var rotMult = new THREE.Vector3().copy(this.rollSpeed).multiplyScalar(delta);
 
