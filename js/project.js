@@ -106,8 +106,8 @@ var project = {
         this.directionalLight.position.set(-600, 400, 0);
         //this.directionalLight.target.position.set(0, 0, 0);
         this.directionalLight.castShadow = true;
-        this.directionalLight.shadowCameraNear = -1000;
-        this.directionalLight.shadowCameraFar = 500;
+        this.directionalLight.shadowCameraNear = -100;
+        this.directionalLight.shadowCameraFar = 100;
         this.directionalLight.shadowCameraLeft = -100;
         this.directionalLight.shadowCameraRight = 100;
         this.directionalLight.shadowCameraTop = 100;
@@ -374,6 +374,8 @@ var project = {
                         color: 0xffffff,
                         side: THREE.DoubleSide
                     });
+                    child.receiveShadow = true;
+                    child.castShadow = true;
                     child.scale.set(0.01, 0.01, 0.01);
 
                 }
@@ -382,8 +384,6 @@ var project = {
 
             object.position.y = -20;
             object.position.z = -90;
-            object.receiveShadow = true;
-            object.castShadow = true;
             var mat = new THREE.Matrix4();
             mat.makeScale(0.000001, 0.000001, 0.000001);
             object.scale = mat;
