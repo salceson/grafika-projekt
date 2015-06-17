@@ -112,7 +112,7 @@ var project = {
         this.directionalLight.shadowCameraRight = 100;
         this.directionalLight.shadowCameraTop = 100;
         this.directionalLight.shadowCameraBottom = -100;
-        this.directionalLight.shadowCameraVisible = true;
+        //this.directionalLight.shadowCameraVisible = true;
         this.directionalLight.shadowMapWidth = 2048;
         this.directionalLight.shadowMapHeight = 2048;
         this.scene.add(this.directionalLight);
@@ -313,7 +313,7 @@ var project = {
             textureHeight: 512,
             waterNormals: waterNormals,
             alpha: 1.0,
-            sunDirection: project.directionalLight.position.normalize(),
+            sunDirection: new THREE.Vector3(0, 0, 0).copy(project.directionalLight.position.normalize()),
             sunColor: 0xffffff,
             waterColor: 0x001e0f,
             distortionScale: 50.0
@@ -406,12 +406,6 @@ var project = {
     },
 
     render: function () {
-        //var deltaTime = project.clock.getDelta();
-
-        //this.stats.update();
-
-        //this.controls.update(deltaTime);
-
         this.ms_Water.render();
         this.renderer.render(this.scene, this.camera);
     },
@@ -439,8 +433,6 @@ var project = {
         var dirTrgtPos = new THREE.Vector3(0, 0, 0).copy(this.directionalLight.target.position).add(delta);
         this.directionalLight.position.set(dirPos.x, dirPos.y, dirPos.z);
         this.dirLightHelper.position.set(dirTrgtPos.x, dirTrgtPos.y, dirTrgtPos.z);
-        //this.directionalLight.target.position.set(dirTrgtPos.x, dirTrgtPos.y, dirTrgtPos.z);
-        //this.directionalLight.target.updateMatrixWorld();
         this.ms_Water.material.uniforms.time.value += 1.0 / 60.0;
         this.previousPosition = new THREE.Vector3(0, 0, 0).copy(newPosition);
     }
