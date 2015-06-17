@@ -115,6 +115,7 @@ var project = {
         //this.directionalLight.shadowCameraVisible = true;
         this.directionalLight.shadowMapWidth = 2048;
         this.directionalLight.shadowMapHeight = 2048;
+        this.directionalLight.shadowDarkness = 0.3;
         this.scene.add(this.directionalLight);
 
         this.dirLightHelper = new THREE.Mesh(
