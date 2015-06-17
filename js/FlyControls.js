@@ -13,7 +13,7 @@ THREE.FlyControls = function ( object, domElement ) {
 
 	this.movementSpeed = 1.0;
 	this.rollSpeed = new THREE.Vector3(0.005, 0.005, 0.005);
-	this.gravityValue = 50;
+	this.gravityValue = 60;
 	this.lift = this.gravityValue;
 
 	this.dragToLook = false;
@@ -53,30 +53,13 @@ THREE.FlyControls = function ( object, domElement ) {
 
 		switch ( event.keyCode ) {
 
-			//case 16: /* shift */ this.movementSpeedMultiplier = .1; break;
-
-			//case 87: /*W*/ this.moveState.forward = 1; break;
-			//case 83: /*S*/ this.moveState.back = 1; break;
-
-			//case 65: /*A*/ this.moveState.left = 1; break;
-			//case 68: /*D*/ this.moveState.right = 1; break;
-
-			//case 82: /*R*/ this.moveState.up = 1; break;
-			//case 70: /*F*/ this.moveState.down = 1; break;
-
-			//case 38: /*up*/ this.moveState.pitchUp = 1; break;
 			case 40: /*down*/ this.moveState.pitchUp = 1; break;
-			//case 40: /*down*/ this.moveState.pitchDown = 1; break;
 			case 38: /*up*/ this.moveState.pitchDown = 1; break;
 
-			//case 37: /*left*/ this.moveState.yawLeft = 1; break;
 			case 65: /*A*/ this.moveState.yawLeft = 1; break;
-			//case 39: /*right*/ this.moveState.yawRight = 1; break;
 			case 68: /*D*/ this.moveState.yawRight = 1; break;
 
-			//case 81: /*Q*/ this.moveState.rollLeft = 1; break;
 			case 37: /*left*/ this.moveState.rollLeft = 1; break;
-			//case 69: /*E*/ this.moveState.rollRight = 1; break;
 			case 39: /*right*/ this.moveState.rollRight = 1; break;
 
 		}
@@ -92,28 +75,13 @@ THREE.FlyControls = function ( object, domElement ) {
 
 			case 16: /* shift */ this.movementSpeedMultiplier = 1; break;
 
-			//case 87: /*W*/ this.moveState.forward = 0; break;
-			//case 83: /*S*/ this.moveState.back = 0; break;
-
-			//case 65: /*A*/ this.moveState.left = 0; break;
-			//case 68: /*D*/ this.moveState.right = 0; break;
-
-			//case 82: /*R*/ this.moveState.up = 0; break;
-			//case 70: /*F*/ this.moveState.down = 0; break;
-
-			//case 38: /*up*/ this.moveState.pitchUp = 0; break;
 			case 40: /*down*/ this.moveState.pitchUp = 0; break;
-			//case 40: /*down*/ this.moveState.pitchDown = 0; break;
 			case 38: /*up*/ this.moveState.pitchDown = 0; break;
 
-			//case 37: /*left*/ this.moveState.yawLeft = 0; break;
 			case 65: /*A*/ this.moveState.yawLeft = 0; break;
-			//case 39: /*right*/ this.moveState.yawRight = 0; break;
 			case 68: /*D*/ this.moveState.yawRight = 0; break;
 
-			//case 81: /*Q*/ this.moveState.rollLeft = 0; break;
 			case 37: /*left*/ this.moveState.rollLeft = 0; break;
-			//case 69: /*E*/ this.moveState.rollRight = 0; break;
 			case 39: /*right*/ this.moveState.rollRight = 0; break;
 
 		}
@@ -212,7 +180,7 @@ THREE.FlyControls = function ( object, domElement ) {
 
 		//apply gravity
 		var gravityDiff = delta * this.gravityValue;
-		var gravityVector = new THREE.Vector3(0, -1 * gravityDiff, 0);
+		var gravityVector = new THREE.Vector3(0, -gravityDiff, 0);
 		this.object.position.add(gravityVector);
 
 		//apply lift
