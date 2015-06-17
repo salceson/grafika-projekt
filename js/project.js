@@ -66,6 +66,8 @@ var fragmentShader = [
 
 var project = {
     init: function () {
+        this.previousPosition = new THREE.Vector3(0, 0, 0);
+
         this.renderer = new THREE.WebGLRenderer({antialias: true});
         this.renderer.setClearColor(0xffffff);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -102,18 +104,27 @@ var project = {
 
         this.directionalLight = new THREE.DirectionalLight(0xffffcc, 0.6);
         this.directionalLight.position.set(-600, 400, 0);
-        this.directionalLight.target.position.set(0, 0, 0);
+        //this.directionalLight.target.position.set(0, 0, 0);
         this.directionalLight.castShadow = true;
-        this.directionalLight.shadowCameraNear = -1000;
-        this.directionalLight.shadowCameraFar = 500;
-        this.directionalLight.shadowCameraLeft = -1000;
-        this.directionalLight.shadowCameraRight = 1000;
-        this.directionalLight.shadowCameraTop = 1000;
-        this.directionalLight.shadowCameraBottom = -1000;
+        this.directionalLight.shadowCameraNear = -100;
+        this.directionalLight.shadowCameraFar = 100;
+        this.directionalLight.shadowCameraLeft = -100;
+        this.directionalLight.shadowCameraRight = 100;
+        this.directionalLight.shadowCameraTop = 100;
+        this.directionalLight.shadowCameraBottom = -100;
         //this.directionalLight.shadowCameraVisible = true;
         this.directionalLight.shadowMapWidth = 2048;
         this.directionalLight.shadowMapHeight = 2048;
+        this.directionalLight.shadowDarkness = 0.3;
         this.scene.add(this.directionalLight);
+
+        this.dirLightHelper = new THREE.Mesh(
+            new THREE.BoxGeometry(1, 1, 1, 1, 1, 1),
+            new THREE.MeshNormalMaterial({transparent: true, opacity: 0})
+        );
+        this.dirLightHelper.position.set(0, 0, 0);
+        this.directionalLight.target = this.dirLightHelper;
+        this.scene.add(this.dirLightHelper);
 
         this.loadSkyBox();
 
@@ -303,7 +314,7 @@ var project = {
             textureHeight: 512,
             waterNormals: waterNormals,
             alpha: 1.0,
-            sunDirection: project.directionalLight.position.normalize(),
+            sunDirection: new THREE.Vector3(0, 0, 0).copy(project.directionalLight.position.normalize()),
             sunColor: 0xffffff,
             waterColor: 0x001e0f,
             distortionScale: 50.0
@@ -364,6 +375,8 @@ var project = {
                         color: 0xffffff,
                         side: THREE.DoubleSide
                     });
+                    child.receiveShadow = true;
+                    child.castShadow = true;
                     child.scale.set(0.01, 0.01, 0.01);
 
                 }
@@ -372,8 +385,6 @@ var project = {
 
             object.position.y = -20;
             object.position.z = -90;
-            object.receiveShadow = true;
-            object.castShadow = true;
             var mat = new THREE.Matrix4();
             mat.makeScale(0.000001, 0.000001, 0.000001);
             object.scale = mat;
@@ -396,12 +407,6 @@ var project = {
     },
 
     render: function () {
-        //var deltaTime = project.clock.getDelta();
-
-        //this.stats.update();
-
-        //this.controls.update(deltaTime);
-
         this.ms_Water.render();
         this.renderer.render(this.scene, this.camera);
     },
@@ -422,6 +427,14 @@ var project = {
             this.controls.update(deltaTime);
         }
 
+        var newPosition = this.camera.position;
+        var minusPreviousPosition = new THREE.Vector3(0, 0, 0).copy(this.previousPosition).multiplyScalar(-1);
+        var delta = new THREE.Vector3(0, 0, 0).copy(newPosition).add(minusPreviousPosition);
+        var dirPos = new THREE.Vector3(0, 0, 0).copy(this.directionalLight.position).add(delta);
+        var dirTrgtPos = new THREE.Vector3(0, 0, 0).copy(this.directionalLight.target.position).add(delta);
+        this.directionalLight.position.set(dirPos.x, dirPos.y, dirPos.z);
+        this.dirLightHelper.position.set(dirTrgtPos.x, dirTrgtPos.y, dirTrgtPos.z);
         this.ms_Water.material.uniforms.time.value += 1.0 / 60.0;
+        this.previousPosition = new THREE.Vector3(0, 0, 0).copy(newPosition);
     }
 };
